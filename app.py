@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 # ----------------------------------------------------------------------------
 # 기본 설정
 # ----------------------------------------------------------------------------
-st.set_page_config(page_title="한/미 경제 동향 대시보드", page_icon="📊", layout="wide")
+st.set_page_config(page_title="한/미 경제 동향 대시보드", page_icon="📊", layout="centered")
 
 # API 키는 secrets.toml (로컬) 또는 Streamlit Cloud의 Secrets 설정에서 읽어옵니다.
 # 절대 코드에 직접 키를 적지 마세요! (README.md 참고)
@@ -138,36 +138,33 @@ tab_day, tab_week, tab_month = st.tabs(["📅 일간", "📆 주간", "🗓️ �
 # ---------------- 일간 ----------------
 with tab_day:
     st.subheader("오늘의 핵심 지표")
-    col1, col2, col3, col4 = st.columns(4)
 
     fx = fetch_fred_series(FRED_SERIES["원/달러 환율 (KRW per USD)"], "2025-01-01")
     fx_latest, fx_prev, fx_diff = pct_change_over(fx, 1)
     if fx_latest is not None:
-        col1.metric("원/달러 환율", f"{fx_latest:,.1f}원", f"{fx_diff:+.1f}")
+        st.metric("원/달러 환율", f"{fx_latest:,.1f}원", f"{fx_diff:+.1f}")
 
     us_rate = fetch_fred_series(FRED_SERIES["미국 기준금리 (Fed Funds Rate)"], "2024-01-01")
     if not us_rate.empty:
-        col2.metric("미국 기준금리", f"{us_rate.iloc[-1]['value']:.2f}%")
+        st.metric("미국 기준금리", f"{us_rate.iloc[-1]['value']:.2f}%")
 
     kr_stats = fetch_ecos_key_stats()
     kr_rate_row = find_kr_stat(kr_stats, KR_KEYWORDS["한국 기준금리"])
     if kr_rate_row is not None:
-        col3.metric("한국 기준금리", f"{kr_rate_row['DATA_VALUE']}%")
+        st.metric("한국 기준금리", f"{kr_rate_row['DATA_VALUE']}%")
 
     us10y = fetch_fred_series(FRED_SERIES["미국 10년물 국채금리"], "2025-01-01")
     if not us10y.empty:
-        col4.metric("미국 10년물 국채", f"{us10y.iloc[-1]['value']:.2f}%")
+        st.metric("미국 10년물 국채", f"{us10y.iloc[-1]['value']:.2f}%")
 
     st.divider()
-    news_col1, news_col2 = st.columns(2)
-    with news_col1:
-        st.markdown("**🇰🇷 한국 경제 주요 뉴스**")
-        for n in fetch_news("금리+OR+환율+OR+경제", lang="ko", country="KR"):
-            st.markdown(f"- [{n['title']}]({n['link']})")
-    with news_col2:
-        st.markdown("**🇺🇸 미국 경제 주요 뉴스**")
-        for n in fetch_news("federal+reserve+OR+interest+rate+OR+inflation", lang="en", country="US"):
-            st.markdown(f"- [{n['title']}]({n['link']})")
+    st.markdown("**🇰🇷 한국 경제 주요 뉴스**")
+    for n in fetch_news("금리+OR+환율+OR+경제", lang="ko", country="KR"):
+        st.markdown(f"- [{n['title']}]({n['link']})")
+
+    st.markdown("**🇺🇸 미국 경제 주요 뉴스**")
+    for n in fetch_news("federal+reserve+OR+interest+rate+OR+inflation", lang="en", country="US"):
+        st.markdown(f"- [{n['title']}]({n['link']})")
 
 # ---------------- 주간 ----------------
 with tab_week:
@@ -191,28 +188,25 @@ with tab_month:
     st.subheader("월간 추이 (최근 6개월)")
     six_months_ago = (datetime.now() - timedelta(days=180)).strftime("%Y-%m-%d")
 
-    chart_col1, chart_col2 = st.columns(2)
-    with chart_col1:
-        st.markdown("**미국 소비자물가지수(CPI)**")
-        cpi = fetch_fred_series(FRED_SERIES["미국 소비자물가지수(CPI)"], six_months_ago)
-        if not cpi.empty:
-            st.line_chart(cpi.set_index("date")["value"])
+    st.markdown("**미국 소비자물가지수(CPI)**")
+    cpi = fetch_fred_series(FRED_SERIES["미국 소비자물가지수(CPI)"], six_months_ago)
+    if not cpi.empty:
+        st.line_chart(cpi.set_index("date")["value"])
 
-        st.markdown("**미국 실업률**")
-        unrate = fetch_fred_series(FRED_SERIES["미국 실업률"], six_months_ago)
-        if not unrate.empty:
-            st.line_chart(unrate.set_index("date")["value"])
+    st.markdown("**미국 실업률**")
+    unrate = fetch_fred_series(FRED_SERIES["미국 실업률"], six_months_ago)
+    if not unrate.empty:
+        st.line_chart(unrate.set_index("date")["value"])
 
-    with chart_col2:
-        st.markdown("**원/달러 환율**")
-        fx6 = fetch_fred_series(FRED_SERIES["원/달러 환율 (KRW per USD)"], six_months_ago)
-        if not fx6.empty:
-            st.line_chart(fx6.set_index("date")["value"])
+    st.markdown("**원/달러 환율**")
+    fx6 = fetch_fred_series(FRED_SERIES["원/달러 환율 (KRW per USD)"], six_months_ago)
+    if not fx6.empty:
+        st.line_chart(fx6.set_index("date")["value"])
 
-        st.markdown("**미국 기준금리**")
-        rate6 = fetch_fred_series(FRED_SERIES["미국 기준금리 (Fed Funds Rate)"], six_months_ago)
-        if not rate6.empty:
-            st.line_chart(rate6.set_index("date")["value"])
+    st.markdown("**미국 기준금리**")
+    rate6 = fetch_fred_series(FRED_SERIES["미국 기준금리 (Fed Funds Rate)"], six_months_ago)
+    if not rate6.empty:
+        st.line_chart(rate6.set_index("date")["value"])
 
     st.divider()
     with st.expander("🇰🇷 한국 100대 통계지표 전체 보기 (원본 데이터 확인용)"):
